@@ -1,2 +1,3 @@
-# Computer-Networks-Projects
-My programming assignments for the CSC 4200 Computer Networks course
+# Computer Networks Project
+
+TnTech CSC 4200 Computer Networks Programming Projects
