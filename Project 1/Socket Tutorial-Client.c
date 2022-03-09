@@ -11,12 +11,13 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-int socket_desc;
-struct sockaddr_in server;
+int socket_desc; //The socket handler
+struct sockaddr_in server; //The handler for connecting to the server
 char* filename;
-char fileBuffer[1000];
+char fileBuffer[1000]; //Used to store and format strings to be printed to the logfile
 FILE* out;
 
+//Call this function to close the file and socket, needs to know if the socket has been made
 void endSession(bool socketActive){
 	if(socketActive)
 		shutdown(socket_desc, SHUT_RDWR);
@@ -25,7 +26,9 @@ void endSession(bool socketActive){
 	fclose(out);
 }
 
+//Call this to "begin the session" (Create a logfile, claim the socket, and connect to the server)
 bool beginSession(){
+	//Begin logfile
 	out = fopen(filename, "w");
 	fputs("Beginning session.\n", out);
 
@@ -48,6 +51,7 @@ bool beginSession(){
 }
 
 int main(int argc, char* argv[]){
+	//This for loop handles all the flags that are present when the program is called
 	for(int i = 1; i < argc; i++){
 		if(argv[i][0] == '-'){
 			switch(argv[i][1]){
@@ -80,34 +84,40 @@ int main(int argc, char* argv[]){
 		}
 	}
 	
+	//Start the session
 	if(!beginSession())
 		return 1;
 
+	//Get from the user the message we want to send to the server
 	puts("Enter message to send to server:");
 	char message[256];
 	scanf("%s", message);
 
+	//Log the message being sent
 	sprintf(fileBuffer, "Sending message to server: \"%s\"\n", message);
 	fputs(fileBuffer, out);
 
+	//Send the user entered message to the server
 	if(send(socket_desc, message, strlen(message), 0) < 0){
 		fputs("Failed to send message.\n", out);
 		endSession(true);
 		return 1;
 	}
 	
-
+	//Get the reply from the server
 	char server_reply[2000];
 	if(recv(socket_desc, server_reply, 2000, 0) < 0){
 		fputs("Failed to receive response.\n", out);
 		endSession(true);
 		return 1;
 	}
-	
+
+	//Log the server response	
 	sprintf(fileBuffer, "Received message from server: \"%s\"\n", server_reply);
 	fputs(fileBuffer, out);
 	printf("%s", fileBuffer);
 
+	//End the program
 	endSession(true);
 	return 0;
 }
